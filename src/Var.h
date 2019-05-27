@@ -1,0 +1,25 @@
+//
+// Created by yangkeao on 5/27/19.
+//
+
+#ifndef HALIDE_VAR_H
+#define HALIDE_VAR_H
+
+#include <string>
+
+namespace Halide {
+    class Var {
+        std::string _name;
+      public:
+      public:
+        explicit Var(const std::string &n);
+
+        Var();
+
+        bool same_as(const Var &other) const {return _name == other._name;}
+
+        const std::string &name() const {return _name;}
+    };
+}
+
+#endif //HALIDE_VAR_H
