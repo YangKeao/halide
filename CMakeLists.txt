@@ -26,8 +26,9 @@ target_link_libraries(halide ${llvm_libs})
 
 ADD_SUBDIRECTORY (googletest)
 enable_testing()
-include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} src)
 
-add_executable( runUnitTests tests/Func.cpp ${SOURCE_FILES})
+aux_source_directory(tests TEST_FILES)
+add_executable( runUnitTests ${SOURCE_FILES} ${TEST_FILES})
 target_link_libraries(runUnitTests gtest gtest_main halide)
 add_test( runUnitTests runUnitTests )

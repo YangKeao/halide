@@ -10,36 +10,66 @@
 #include "Type.h"
 
 namespace Halide {
-    namespace Internal {
-        template<typename T>
-        struct ExprNode {
+    class Expr {
+      public:
+        Expr() = default;
 
-        };
+        friend Expr operator+(Expr lhs, const Expr& rhs);
+        friend Expr operator-(Expr lhs, const Expr& rhs);
+        friend Expr operator*(Expr lhs, const Expr& rhs);
+        friend Expr operator/(Expr lhs, const Expr& rhs);
 
-        struct IntConst: ExprNode<IntConst> {
-            static const IntConst *make(Type t, int64_t value);
-        };
+        friend Expr operator+(Expr lhs, int rhs);
+        friend Expr operator-(Expr lhs, int rhs);
+        friend Expr operator*(Expr lhs, int rhs);
+        friend Expr operator/(Expr lhs, int rhs);
 
-        struct UIntConst: ExprNode<UIntConst> {
-            static const UIntConst *make(Type t, int64_t value);
-        };
+        friend Expr operator+(Expr lhs, unsigned int rhs);
+        friend Expr operator-(Expr lhs, unsigned int rhs);
+        friend Expr operator*(Expr lhs, unsigned int rhs);
+        friend Expr operator/(Expr lhs, unsigned int rhs);
 
-        struct FloatConst: ExprNode<FloatConst> {
-            static const FloatConst *make(Type t, int64_t value);
-        };
-    }
+        friend Expr operator+(Expr lhs, float rhs);
+        friend Expr operator-(Expr lhs, float rhs);
+        friend Expr operator*(Expr lhs, float rhs);
+        friend Expr operator/(Expr lhs, float rhs);
+    };
 
-    inline Type Int(int bits, int count = 1) {
-        return Type(Type::Int, bits, count);
-    }
+    class AddExpr: public Expr {
+      private:
+        Expr lhs;
+        Expr rhs;
 
-    inline Type UInt(int bits, int count = 1) {
-        return Type(Type::UInt, bits, count);
-    }
+      public:
+        AddExpr(const Expr &lhs, const Expr &rhs);
+    };
 
-    inline Type Float(int bits, int count = 1) {
-        return Type(Type::Float, bits, count);
-    }
+    class MinusExpr: public Expr {
+      private:
+        Expr lhs;
+        Expr rhs;
+
+      public:
+        MinusExpr(const Expr &lhs, const Expr &rhs);
+    };
+
+    class MulExpr: public Expr {
+      private:
+        Expr lhs;
+        Expr rhs;
+
+      public:
+        MulExpr(const Expr &lhs, const Expr &rhs);
+    };
+
+    class DivExpr: public Expr {
+      private:
+        Expr lhs;
+        Expr rhs;
+
+      public:
+        DivExpr(const Expr &lhs, const Expr &rhs);
+    };
 }
 
 #endif //HALIDE_EXPR_H

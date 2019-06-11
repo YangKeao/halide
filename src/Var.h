@@ -6,9 +6,10 @@
 #define HALIDE_VAR_H
 
 #include <string>
+#include "Expr.h"
 
 namespace Halide {
-    class Var {
+    class Var: public Expr {
         std::string _name;
       public:
       public:
