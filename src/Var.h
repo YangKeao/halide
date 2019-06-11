@@ -12,7 +12,6 @@ namespace Halide {
     class Var: public Expr {
         std::string _name;
       public:
-      public:
         explicit Var(const std::string &n);
 
         Var();

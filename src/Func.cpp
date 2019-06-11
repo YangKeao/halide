@@ -5,13 +5,15 @@
 #include "Func.h"
 
 namespace Halide {
-    const Func Func::operator=(Expr) const {
-        return Func(true, args);
+    Func& Func::operator=(Expr impls) {
+        auto new_ptr = std::make_unique<Expr>(impls);
+        this->impls.swap(new_ptr);
+        return *this;
     }
 
-    Func Func::operator()(std::vector<Var> args) const {
-        return Func(this->definition, args);
+    Func& Func::operator()(std::vector<Var> args) {
+        auto new_ptr = std::make_unique<std::vector<Var>>(args);
+        this->args.swap(new_ptr);
+        return *this;
     }
-
-    Func::Func(bool definition, const std::vector<Var> &args): definition(definition), args(args) {}
 }
