@@ -9,30 +9,13 @@
 #include "Expr.h"
 
 namespace Halide {
+    template <typename T>
     class Const : public Expr {
-    };
-
-    class ConstInt : public Const {
       private:
-        int value;
+        T value;
       public:
-        ConstInt(int value);
+        Const<T>(T value): value(value) {}
     };
-
-    class ConstUInt : public Const {
-      private:
-        unsigned int value;
-      public:
-        ConstUInt(unsigned int value);
-    };
-
-    class ConstFloat: public Const {
-      private:
-        float value;
-      public:
-        ConstFloat(float value);
-    };
-
 }
 
 

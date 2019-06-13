@@ -6,8 +6,7 @@
 
 namespace Halide {
     Func& Func::operator=(Expr impls) {
-        auto new_ptr = std::make_unique<Expr>(impls);
-        this->impls.swap(new_ptr);
+        this->impls = impls;
         return *this;
     }
 

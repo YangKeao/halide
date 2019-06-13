@@ -13,6 +13,11 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
+# Include PNG
+
+find_package(PNG REQUIRED)
+include_directories(${PNG_INCLUDE_DIR})
+
 # Detect source files
 
 aux_source_directory(src SOURCE_FILES)
@@ -20,7 +25,7 @@ aux_source_directory(src SOURCE_FILES)
 add_library(halide ${SOURCE_FILES})
 
 llvm_map_components_to_libnames(llvm_libs support core irreader)
-target_link_libraries(halide ${llvm_libs})
+target_link_libraries(halide ${llvm_libs} ${PNG_LIBRARY})
 
 # Google Tests
 

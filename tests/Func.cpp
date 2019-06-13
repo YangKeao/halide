@@ -3,7 +3,7 @@
 //
 
 #include "gtest/gtest.h"
-#include "Func.h"
+#include "Halide.h"
 
 using namespace Halide;
 
@@ -11,5 +11,6 @@ TEST(Func, Func) {
     Var x, y, z;
     Func average;
 
-    average(x, y, z) = (x + y + z) / 2;
+    average(x, y, z) = (x + y + z);
+    average /= 3;
 }

@@ -13,7 +13,7 @@
 namespace Halide {
     class Func {
         bool definition = false;
-        std::unique_ptr<Expr> impls = nullptr;
+        Expr impls;
         std::unique_ptr<std::vector<Var>> args;
       public:
         Func() = default;
@@ -22,6 +22,30 @@ namespace Halide {
 
         template <typename... Args>
         Func& operator()(Args&&... args);
+
+        template <typename T>
+        Func &operator+=(T expr) {
+            this->impls = this->impls + expr;
+            return *this;
+        }
+
+        template <typename T>
+        Func &operator-=(T expr) {
+            this->impls = this->impls - expr;
+            return *this;
+        }
+
+        template <typename T>
+        Func &operator*=(T expr) {
+            this->impls = this->impls * expr;
+            return *this;
+        }
+
+        template <typename T>
+        Func &operator/=(T expr) {
+            this->impls = this->impls / expr;
+            return *this;
+        }
 
         Func& operator=(Expr);
     };
