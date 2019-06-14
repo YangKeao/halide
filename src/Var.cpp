@@ -11,4 +11,8 @@ namespace Halide {
 
     Var::Var() : _name(Internal::make_entity_name('v')) {
     }
+
+    void *Var::codegen(CompileCtx& ctx) {
+        return ctx.llvm_named_values[name()];
+    }
 }

@@ -40,12 +40,17 @@ namespace Halide {
         for (int y=0;y<height;y++) {
             for (int x = 0; x<width; x ++) {
                 raw_image[y * width + x] = RGB {
-                    row_pointers[y][x * depth],
-                    row_pointers[y][x * depth + 1],
-                    row_pointers[y][x * depth + 2],
+                    row_pointers[y][x * 3],
+                    row_pointers[y][x * 3 + 1],
+                    row_pointers[y][x * 3 + 2],
                 };
             }
         }
+
+        for (int y=0; y<height; y++)
+            free(row_pointers[y]);
+
+        free(row_pointers);
 
         return Buffer(width, height, depth, raw_image);
     }
@@ -67,5 +72,46 @@ namespace Halide {
 
     unsigned char Buffer::operator()(int x, int y, int c) const {
         return *((unsigned char *) (this->raw_image + y * width + x) + c);
+    }
+
+    void Buffer::write_to(const std::string &filename) {
+        FILE *file = NULL;
+        png_structp png_ptr = NULL;
+        png_infop info_ptr = NULL;
+        png_bytep row = NULL;
+
+        file = std::fopen(filename.c_str(), "wb");
+
+        png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+        info_ptr = png_create_info_struct(png_ptr);
+        setjmp(png_jmpbuf(png_ptr));
+
+        png_init_io(png_ptr, file);
+
+        png_set_IHDR(png_ptr, info_ptr, width, height,
+                     8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+                     PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+        png_write_info(png_ptr, info_ptr);
+
+        auto* row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * height);
+        for (int y=0; y<height; y++) {
+            row_pointers[y] = (png_byte*) malloc(png_get_rowbytes(png_ptr,info_ptr));
+            for (int x=0;x<width;x++) {
+                row_pointers[y][x * 3] = this->raw_image[y * width + x].red;
+                row_pointers[y][x * 3 + 1] = this->raw_image[y * width + x].green;
+                row_pointers[y][x * 3 + 2] = this->raw_image[y * width + x].blue;
+            }
+        }
+
+        png_write_image(png_ptr, row_pointers);
+        png_write_end(png_ptr, NULL);
+        png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+
+        for (int y=0; y<height; y++)
+            free(row_pointers[y]);
+
+        free(row_pointers);
+
+        fclose(file);
     }
 }

@@ -19,6 +19,8 @@ namespace Halide {
         bool same_as(const Var &other) const {return _name == other._name;}
 
         const std::string &name() const {return _name;}
+
+        void *codegen(CompileCtx&) override;
     };
 }
 

@@ -9,11 +9,14 @@
 #include <memory>
 #include "Var.h"
 #include "Expr.h"
+#include "Buffer.h"
+#include "Util.h"
 
 namespace Halide {
-    class Func {
+    class Func: public Expr {
         bool definition = false;
-        Expr impls;
+        std::string name = Internal::make_entity_name("func");
+        Expr* impls;
         std::unique_ptr<std::vector<Var>> args;
       public:
         Func() = default;
@@ -25,29 +28,35 @@ namespace Halide {
 
         template <typename T>
         Func &operator+=(T expr) {
-            this->impls = this->impls + expr;
+            this->impls = (Expr*)&(*(this->impls) + expr);
             return *this;
         }
 
         template <typename T>
         Func &operator-=(T expr) {
-            this->impls = this->impls - expr;
+            this->impls = (Expr*)&(*(this->impls) - expr);
             return *this;
         }
 
         template <typename T>
         Func &operator*=(T expr) {
-            this->impls = this->impls * expr;
+            this->impls = (Expr*)&(*(this->impls) * expr);
             return *this;
         }
 
         template <typename T>
         Func &operator/=(T expr) {
-            this->impls = this->impls / expr;
+            this->impls = (Expr*)&(*(this->impls) / expr);
             return *this;
         }
 
-        Func& operator=(Expr);
+        Func& operator=(Expr&);
+
+        bool isDefinition() {return definition;}
+
+        Buffer realize(int width, int height, int offsetX, int offsetY);
+
+        void* codegen(CompileCtx&) override;
     };
 
     template<typename... Args>

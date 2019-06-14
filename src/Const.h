@@ -14,7 +14,9 @@ namespace Halide {
       private:
         T value;
       public:
-        Const<T>(T value): value(value) {}
+        Const<T>(T value): value(value) {};
+
+        void *codegen(CompileCtx &) override;
     };
 }
 

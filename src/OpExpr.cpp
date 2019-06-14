@@ -3,3 +3,7 @@
 //
 
 #include "OpExpr.h"
+
+namespace Halide {
+
+}

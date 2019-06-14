@@ -6,23 +6,27 @@
 #define HALIDE_EXPR_H
 
 #include "Type.h"
+#include "CompileCtx.h"
 
 namespace Halide {
+
     class Expr {
       public:
         Expr() = default;
 
         template<typename T>
-        friend Expr operator+(Expr lhs, T rhs);
+        friend Expr& operator+(Expr& lhs, T rhs);
 
         template<typename T>
-        friend Expr operator-(Expr lhs, T rhs);
+        friend Expr& operator-(Expr& lhs, T rhs);
 
         template<typename T>
-        friend Expr operator*(Expr lhs, T rhs);
+        friend Expr& operator*(Expr& lhs, T rhs);
 
         template<typename T>
-        friend Expr operator/(Expr lhs, T rhs);
+        friend Expr& operator/(Expr& lhs, T rhs);
+
+        virtual void* codegen(CompileCtx&) = 0;
     };
 }
 

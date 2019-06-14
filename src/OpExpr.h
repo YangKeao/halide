@@ -19,8 +19,8 @@ namespace Halide {
     template<Op op>
     class OpExpr: public Expr {
       private:
-        Expr lhs;
-        Expr rhs;
+        Expr* lhs;
+        Expr* rhs;
         Op _op = op;
       public:
         Op getOp() const {
@@ -28,29 +28,51 @@ namespace Halide {
         }
 
         template<typename T>
-        OpExpr(const Expr &lhs, T& rhs): lhs(lhs), rhs(Const(rhs)) {}
+        OpExpr(Expr &lhs, T& rhs): lhs((Expr*)&lhs), rhs((Expr*)new Const(rhs)) {}
+
+        void *codegen(CompileCtx&) override;
     };
 
+    template<Op op>
+    void *OpExpr<op>::codegen(CompileCtx& ctx) {
+        auto *left = (llvm::Value*)lhs->codegen(ctx);
+        auto *right = (llvm::Value*)rhs->codegen(ctx);
+
+        switch (_op) {
+            case Op::Add: {
+                return ctx.llvm_builder.CreateAdd(left, right, "add_tmp");
+            }
+            case Op::Minus: {
+                return ctx.llvm_builder.CreateSub(left, right, "sub_tmp");
+            }
+            case Op::Mul: {
+                return ctx.llvm_builder.CreateMul(left, right, "mul_tmp");
+            }
+            case Op::Div: {
+                return ctx.llvm_builder.CreateSDiv(left, right, "div_tmp");
+            }
+        }
+    }
 
 
     template<typename T>
-    Expr operator+(Expr lhs, T rhs) {
-        return OpExpr<Op::Add>(lhs, rhs);
+    Expr& operator+(Expr& lhs, T rhs) {
+        return *new OpExpr<Op::Add>(lhs, rhs);
     }
 
     template<typename T>
-    Expr operator-(Expr lhs, T rhs) {
-        return OpExpr<Op::Minus>(lhs, rhs);
+    Expr& operator-(Expr& lhs, T rhs) {
+        return *new OpExpr<Op::Minus>(lhs, rhs);
     }
 
     template<typename T>
-    Expr operator*(Expr lhs, T rhs) {
-        return OpExpr<Op::Mul>(lhs, rhs);
+    Expr& operator*(Expr& lhs, T rhs) {
+        return *new OpExpr<Op::Mul>(lhs, rhs);
     }
 
     template<typename T>
-    Expr operator/(Expr lhs, T rhs) {
-        return OpExpr<Op::Div>(lhs, rhs);
+    Expr& operator/(Expr& lhs, T rhs) {
+        return *new OpExpr<Op::Div>(lhs, rhs);
     }
 }
 

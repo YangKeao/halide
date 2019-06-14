@@ -13,4 +13,8 @@ TEST(Func, Func) {
 
     average(x, y, z) = (x + y + z);
     average /= 3;
+
+    auto ctx = CompileCtx();
+    auto func = average.codegen(ctx);
+    ctx.llvm_module->print(llvm::errs(), nullptr);
 }
