@@ -7,6 +7,7 @@
 
 
 #include "Const.h"
+#include "Var.h"
 
 namespace Halide {
     enum Op {
@@ -28,7 +29,17 @@ namespace Halide {
         }
 
         template<typename T>
-        OpExpr(Expr &lhs, T& rhs): lhs((Expr*)&lhs), rhs((Expr*)new Const(rhs)) {}
+        OpExpr(Expr &lhs, T& rhs): lhs((Expr*)&lhs) {
+            if (std::is_same<T, int>::value) {
+                this->rhs = (Expr*)new Const(*(int*)&rhs);
+            } else if (std::is_same<T, float>::value) {
+                this->rhs = (Expr*)new Const(*(float*)&rhs);
+            } else if (std::is_same<T, unsigned char>::value) {
+                this->rhs = (Expr*)new Const(*(unsigned char*)&rhs);
+            } else {
+                this->rhs = (Expr*)&rhs;
+            }
+        }
 
         void *codegen(CompileCtx&) override;
     };
@@ -54,24 +65,23 @@ namespace Halide {
         }
     }
 
-
     template<typename T>
-    Expr& operator+(Expr& lhs, T rhs) {
+    Expr& operator+(Expr& lhs, T&& rhs) {
         return *new OpExpr<Op::Add>(lhs, rhs);
     }
 
     template<typename T>
-    Expr& operator-(Expr& lhs, T rhs) {
+    Expr& operator-(Expr& lhs, T&& rhs) {
         return *new OpExpr<Op::Minus>(lhs, rhs);
     }
 
     template<typename T>
-    Expr& operator*(Expr& lhs, T rhs) {
+    Expr& operator*(Expr& lhs, T&& rhs) {
         return *new OpExpr<Op::Mul>(lhs, rhs);
     }
 
     template<typename T>
-    Expr& operator/(Expr& lhs, T rhs) {
+    Expr& operator/(Expr& lhs, T&& rhs) {
         return *new OpExpr<Op::Div>(lhs, rhs);
     }
 }

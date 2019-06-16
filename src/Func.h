@@ -14,11 +14,12 @@
 
 namespace Halide {
     class Func: public Expr {
+      public:
         bool definition = false;
         std::string name = Internal::make_entity_name("func");
         Expr* impls;
-        std::unique_ptr<std::vector<Var>> args;
-      public:
+        std::shared_ptr<std::vector<Var>> args;
+
         Func() = default;
 
         Func& operator()(std::vector<Var>);

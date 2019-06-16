@@ -15,16 +15,16 @@ namespace Halide {
         Expr() = default;
 
         template<typename T>
-        friend Expr& operator+(Expr& lhs, T rhs);
+        friend Expr& operator+(Expr& lhs, T&& rhs);
 
         template<typename T>
-        friend Expr& operator-(Expr& lhs, T rhs);
+        friend Expr& operator-(Expr& lhs, T&& rhs);
 
         template<typename T>
-        friend Expr& operator*(Expr& lhs, T rhs);
+        friend Expr& operator*(Expr& lhs, T&& rhs);
 
         template<typename T>
-        friend Expr& operator/(Expr& lhs, T rhs);
+        friend Expr& operator/(Expr& lhs, T&& rhs);
 
         virtual void* codegen(CompileCtx&) = 0;
     };

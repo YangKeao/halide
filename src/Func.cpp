@@ -13,7 +13,7 @@ namespace Halide {
     }
 
     Func& Func::operator()(std::vector<Var> args) {
-        auto new_ptr = std::make_unique<std::vector<Var>>(args);
+        auto new_ptr = std::make_shared<std::vector<Var>>(args);
         this->args.swap(new_ptr);
         return *this;
     }

@@ -70,19 +70,18 @@ namespace Halide {
         return depth;
     }
 
-    unsigned char Buffer::operator()(int x, int y, int c) const {
+    unsigned char Buffer::get(int x, int y, int c) const {
         return *((unsigned char *) (this->raw_image + y * width + x) + c);
     }
 
     void Buffer::write_to(const std::string &filename) {
-        FILE *file = NULL;
-        png_structp png_ptr = NULL;
-        png_infop info_ptr = NULL;
-        png_bytep row = NULL;
+        FILE *file = nullptr;
+        png_structp png_ptr = nullptr;
+        png_infop info_ptr = nullptr;
 
         file = std::fopen(filename.c_str(), "wb");
 
-        png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+        png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
         info_ptr = png_create_info_struct(png_ptr);
         setjmp(png_jmpbuf(png_ptr));
 
@@ -104,8 +103,8 @@ namespace Halide {
         }
 
         png_write_image(png_ptr, row_pointers);
-        png_write_end(png_ptr, NULL);
-        png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+        png_write_end(png_ptr, nullptr);
+        png_destroy_write_struct(&png_ptr, (png_infopp)nullptr);
 
         for (int y=0; y<height; y++)
             free(row_pointers[y]);
@@ -113,5 +112,15 @@ namespace Halide {
         free(row_pointers);
 
         fclose(file);
+    }
+
+    BufferCall& Buffer::operator()(Expr& x, Expr& y, Expr& c) const {
+        return *(new BufferCall(*this, x, y, c));
+    }
+
+    BufferCall::BufferCall(const Buffer &buf, Expr &x, Expr &y, Expr &z) : buf(buf), x(x), y(y), z(z) {}
+
+    void *BufferCall::codegen(CompileCtx &ctx) {
+        return nullptr;
     }
 }

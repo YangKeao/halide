@@ -7,6 +7,7 @@
 
 #include <png.h>
 #include <string>
+#include "Expr.h"
 
 namespace Halide {
     struct RGB {
@@ -14,6 +15,8 @@ namespace Halide {
         unsigned char green;
         unsigned char blue;
     };
+
+    class BufferCall;
 
     class Buffer {
       private:
@@ -34,8 +37,22 @@ namespace Halide {
 
         unsigned char getDepth() const;
 
-        unsigned char operator()(int x, int y, int c) const;
+        unsigned char get(int x, int y, int c) const;
 
+        BufferCall& operator()(Expr& x, Expr& y, Expr& c) const;
+    };
+
+    class BufferCall: public Expr {
+      private:
+        const Buffer& buf;
+        Expr& x;
+        Expr& y;
+        Expr& z;
+
+      public:
+        BufferCall(const Buffer &buf, Expr &x, Expr &y, Expr &z);
+
+        void *codegen(CompileCtx &ctx) override;
     };
 
     Buffer load_png(const std::string &filename);

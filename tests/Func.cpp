@@ -11,10 +11,10 @@ TEST(Func, Func) {
     Var x, y, z;
     Func average;
 
-    average(x, y, z) = (x + y + z);
-    average /= 3;
+    average(x, y, z) = x + 100;
 
     auto ctx = CompileCtx();
-    auto func = average.codegen(ctx);
-    ctx.llvm_module->print(llvm::errs(), nullptr);
+    auto output = average.realize(100, 100, 0, 0);
+
+    assert(output.get(5, 5, 1) == 105);
 }
