@@ -16,5 +16,6 @@ TEST(Func, Func) {
     auto ctx = CompileCtx();
     auto output = average.realize(100, 100, 0, 0);
 
+    output.write_to("parrot.png");
     assert(output.get(5, 5, 1) == 105);
 }

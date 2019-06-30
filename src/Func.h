@@ -11,13 +11,14 @@
 #include "Expr.h"
 #include "Buffer.h"
 #include "Util.h"
+#include "Const.h"
 
 namespace Halide {
     class Func: public Expr {
       public:
         bool definition = false;
         std::string name = Internal::make_entity_name("func");
-        Expr* impls;
+        Expr* impls = nullptr;
         std::shared_ptr<std::vector<Var>> args;
 
         Func() = default;
@@ -29,24 +30,44 @@ namespace Halide {
 
         template <typename T>
         Func &operator+=(T expr) {
+            this->definition = true;
+            auto zero = new Const<int>(0);
+            if (this->impls == nullptr) {
+                this->impls = zero;
+            }
             this->impls = (Expr*)&(*(this->impls) + expr);
             return *this;
         }
 
         template <typename T>
         Func &operator-=(T expr) {
+            this->definition = true;
+            auto zero = new Const(0);
+            if (this->impls == nullptr) {
+                this->impls = zero;
+            }
             this->impls = (Expr*)&(*(this->impls) - expr);
             return *this;
         }
 
         template <typename T>
         Func &operator*=(T expr) {
+            this->definition = true;
+            auto zero = new Const(0);
+            if (this->impls == nullptr) {
+                this->impls = zero;
+            }
             this->impls = (Expr*)&(*(this->impls) * expr);
             return *this;
         }
 
         template <typename T>
         Func &operator/=(T expr) {
+            this->definition = true;
+            auto zero = new Const(0);
+            if (this->impls == nullptr) {
+                this->impls = zero;
+            }
             this->impls = (Expr*)&(*(this->impls) / expr);
             return *this;
         }
@@ -58,6 +79,17 @@ namespace Halide {
         Buffer realize(int width, int height, int offsetX, int offsetY);
 
         void* codegen(CompileCtx&) override;
+
+        Func& split(Var&, Var&, Var&, int);
+
+        template <typename... Args>
+        Func& reorder(Args&&... args);
+
+        Func& fuse(Var&, Var&, Var&);
+
+        Func& vectorized(Var&, int);
+
+        Func& parallel(Var&);
     };
 
     template<typename... Args>

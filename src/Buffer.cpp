@@ -3,6 +3,7 @@
 //
 
 #include "Buffer.h"
+#include "OpExpr.h"
 #include <cstdio>
 
 namespace Halide {
@@ -118,9 +119,34 @@ namespace Halide {
         return *(new BufferCall(*this, x, y, c));
     }
 
-    BufferCall::BufferCall(const Buffer &buf, Expr &x, Expr &y, Expr &z) : buf(buf), x(x), y(y), z(z) {}
+    RGB *Buffer::getRawImage() const {
+        return raw_image;
+    }
+
+    BufferCall::BufferCall(const Buffer &buf, Expr &x, Expr &y, Expr &c) : buf(buf), x(x), y(y), c(c) {}
 
     void *BufferCall::codegen(CompileCtx &ctx) {
-        return nullptr;
+        auto addr = (unsigned long) this->buf.getRawImage();
+        auto buffer_name = "__buffer_" + std::to_string(addr) + "__";
+
+        auto input_buffer = ctx.llvm_named_values[buffer_name];
+        if (input_buffer == nullptr) {
+            input_buffer = new llvm::GlobalVariable(
+                    *ctx.llvm_module.get(),
+                    llvm::Type::getInt8PtrTy(ctx.llvm_context),
+                    false,
+                    llvm::GlobalValue::ExternalWeakLinkage,
+                    0,
+                    buffer_name
+            );
+            ctx.llvm_global_map[buffer_name] = (unsigned long) (&this->buf);
+            ctx.llvm_named_values[buffer_name] = input_buffer;
+        }
+
+        auto buffer_ptr = ctx.llvm_builder.CreateLoad(input_buffer, "__load_tmp__");
+        auto rgb_ptr = ctx.llvm_builder.CreateGEP(buffer_ptr, (llvm::Value *) (((y * this->buf.getWidth()) +  x) * ((int)sizeof(RGB)) + c).codegen(ctx),
+                                                  "__buffer_gep__");
+        auto rgb = ctx.llvm_builder.CreateLoad(rgb_ptr, "__load_tmp__");
+        return ctx.llvm_builder.CreateIntCast(rgb, llvm::Type::getInt32Ty(ctx.llvm_context), true, "__cast_tmp__");
     }
 }

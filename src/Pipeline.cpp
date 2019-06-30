@@ -15,13 +15,13 @@ namespace Halide {
 
     Buffer Pipeline::realize() {
 //        auto main_func = this->main_func.codegen(this->ctx);
+        auto size = sizeof(RGB) * width * height;
 
-        auto output_buffer = (RGB*)malloc(sizeof(RGB) * width * height);
-        fprintf(stderr, "%lu", sizeof(RGB));
-
+        auto output_buffer = (RGB*)malloc(size);
+        auto array_type = llvm::ArrayType::get(llvm::Type::getInt8PtrTy(ctx.llvm_context), size);
         auto buffer = new llvm::GlobalVariable(
                 *ctx.llvm_module.get(),
-                llvm::Type::getInt8PtrTy(ctx.llvm_context),
+                array_type,
                 false,
                 llvm::GlobalValue::ExternalWeakLinkage,
                 0,
@@ -46,10 +46,12 @@ namespace Halide {
                         auto val = (llvm::Value *)this->main_func.impls->codegen(ctx);
                         auto val_8bit = ctx.llvm_builder.CreateIntCast(val, llvm::Type::getInt8Ty(ctx.llvm_context), false);
 
-                        auto buffer_ptr = ctx.llvm_builder.CreateLoad(buffer, "__load_tmp__");
-                        auto rgb_ptr = ctx.llvm_builder.CreateGEP(buffer_ptr, (llvm::Value *) (((y * width) +  x) * ((int)sizeof(RGB)) + c).codegen(ctx),
-                                                   "__buffer_gep__");
+//                        auto buffer_ptr = ctx.llvm_builder.CreateLoad(buffer, "__load_tmp__");
 
+                        auto offset = (llvm::Value *) ((((y - offset_y) * width) +  (x - offset_x)) * ((int)sizeof(RGB)) + c).codegen(ctx);
+                        auto rgb_ptr = ctx.llvm_builder.CreateAlloca(llvm::Type::getInt8PtrTy(ctx.llvm_context));
+                        ctx.llvm_builder.CreateGEP(array_type, rgb_ptr, offset, "__gep_tmp__");
+                        ctx.llvm_module->print(llvm::errs(), nullptr);
                         ctx.llvm_builder.CreateStore(val_8bit, rgb_ptr);
                     }, c, Bound(0, 3), Const(1));
                 }, y, Bound(offset_y, offset_y + height), Const(1));
@@ -62,7 +64,10 @@ namespace Halide {
 
         JIT engine(std::move(ctx.llvm_module));
 
-        engine.map_var("__output_buffer__", (uint64_t) &output_buffer);
+        engine.map_var("__output_buffer__", (uint64_t) output_buffer);
+        for(auto & i : ctx.llvm_global_map) {
+            engine.map_var(i.first, (uint64_t) &i.second);
+        }
 
         engine.run();
 

@@ -20,6 +20,8 @@ namespace Halide {
         std::unique_ptr<llvm::Module> llvm_module;
         std::map<std::string, llvm::Value *> llvm_named_values;
 
+        std::map<std::string, unsigned long> llvm_global_map;
+
         CompileCtx(): llvm_context(), llvm_builder(this->llvm_context), llvm_module(llvm::make_unique<llvm::Module>("main_module", this->llvm_context)), llvm_named_values() {}
     };
 }

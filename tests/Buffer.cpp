@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "Buffer.h"
+#include "Halide.h"
 
 using namespace Halide;
 
@@ -31,4 +31,26 @@ TEST(Buffer, write_png) {
     }
 
     unlink("./parrot(2).png");
+}
+
+TEST(Buffer, blur) {
+    Var x,y,c, x_outer, x_inner, tile_index;
+    Func blur;
+    auto buffer = load_png("../tests/parrot.png");
+
+    int r = 1;
+    for (int i=-r;i<=r;i++) {
+        for (int j=-r;j<=r;j++) {
+            blur(x, y, c) += buffer(x + i, y + j, c);
+        }
+    }
+    blur(x, y, c) /= (2 * r + 1) * (2 * r + 1);
+
+    blur.split(x, x_outer, x_inner, 8);
+    blur.reorder(c, x_inner, x_outer, y);
+    blur.fuse(x_inner, c, tile_index);
+    blur.vectorized(tile_index, 32);
+
+    auto output = blur.realize(buffer.getWidth() - 2 *r, buffer.getHeight() - 2 * r, r, r);
+    output.write_to("./parrot.png");
 }

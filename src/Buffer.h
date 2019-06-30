@@ -25,6 +25,8 @@ namespace Halide {
         unsigned char depth;
 
         RGB* raw_image;
+      public:
+        RGB *getRawImage() const;
 
       public:
         Buffer(int width, int height, unsigned char depth, RGB *rawImage);
@@ -47,10 +49,10 @@ namespace Halide {
         const Buffer& buf;
         Expr& x;
         Expr& y;
-        Expr& z;
+        Expr& c;
 
       public:
-        BufferCall(const Buffer &buf, Expr &x, Expr &y, Expr &z);
+        BufferCall(const Buffer &buf, Expr &x, Expr &y, Expr &c);
 
         void *codegen(CompileCtx &ctx) override;
     };
